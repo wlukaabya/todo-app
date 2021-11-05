@@ -11,13 +11,13 @@ class Todo extends React.Component {
           className="checkbox"
           onChange={(e) => onCheck(e, todo)}
         />
-        <p>{todo.text}</p>
-        <buttton
+        <p>{todo.description}</p>
+        <button
           className="btn btn-danger btn-sm"
-          onClick={() => onDelete(todo.id)}
+          onClick={() => onDelete(todo)}
         >
           Delete
-        </buttton>
+        </button>
       </span>
     );
   }

@@ -8,7 +8,12 @@ class Todos extends React.Component {
       <div className="container bg-light text-success p-2 ">
         {todos.map((t) => {
           return (
-            <Todo todo={t} key={t.id} onDelete={onDelete} onCheck={onCheck} />
+            <Todo
+              todo={t}
+              key={t.todo_id}
+              onDelete={onDelete}
+              onCheck={onCheck}
+            />
           );
         })}
         {todos.length == 0 ? null : (
