@@ -1,38 +1,22 @@
-import React, { Component } from "react";
+import React, { Component, useState, useEffect } from "react";
 import NavBar from "./components/NavBar";
 import TodoForm from "./components/TodoForm";
 import Todos from "./components/Todos";
 import axios from "axios";
 
-class App extends React.Component {
-  state = {
-    todos: [],
-    newTodo: "",
-    deletedTodo: null,
-    deletedId: null,
-    updatedTodo: "",
-    deletedIds: [],
-  };
-  componentDidMount() {
-    this.mountTodos();
-  }
-  componentDidUpdate(pP, pS) {
-    if (this.state.deletedId !== pS.deletedId) {
-      const todos = this.state.todos.filter(
-        (t) => t.todo_id !== this.state.deletedId
-      );
-      this.setState({ todos });
-    }
-    if (this.state.updatedTodo != pS.updatedTodo) {
-      this.mountTodos();
-    }
-    if (this.state.deletedIds !== pS.deletedIds) {
-      const todos = this.state.todos.filter((t) => t.checkStatus === false);
-      this.setState({ todos });
-    }
-  }
+const App = () => {
+  const [todos, setTodos] = useState([]);
+  const [newTodo, setNewTodo] = useState("");
+  const [deletedTodo, setDeletedTodo] = useState(null);
+  const [deletedId, setDeletedId] = useState(null);
+  const [deletedIds, setDeletedIds] = useState([]);
+  const [updatedTodo, setUpdatedTodo] = useState("");
 
-  mountTodos() {
+  useEffect(() => {
+    mountTodos();
+  });
+
+  const mountTodos = () => {
     axios.get(`http://localhost:5000/todos`).then((res) => {
       const arr = [...res.data];
       const check = { checkStatus: false };
@@ -40,79 +24,68 @@ class App extends React.Component {
         return Object.assign(t, check);
       });
 
-      this.setState({ todos });
+      setTodos(todos);
     });
-  }
+  };
 
-  handleAddTodo = (e) => {
+  const handleAddTodo = (e, text) => {
     e.preventDefault();
-    const updatedTodo = this.state.newTodo;
-    if (this.state.newTodo.length !== 0) {
-      const description = this.state.newTodo;
+    const updatedTodo = text;
+    if (text.length !== 0) {
+      const description = text;
       axios.post(`http://localhost:5000/todos/${description}`).then((res) => {
         console.log(res.data);
       });
     } else return null;
-    this.setState({ updatedTodo });
+    setUpdatedTodo(updatedTodo);
     const newTodo = "";
-    this.setState({ newTodo });
+    setNewTodo(newTodo);
   };
 
-  handleChange = (todo) => {
+  const handleChange = (todo) => {
     const newTodo = todo.target.value;
-    this.setState({ newTodo });
+    setNewTodo(newTodo);
   };
-  handleDelete = (todo) => {
+  const handleDelete = (todo) => {
     const deletedId = todo.todo_id;
     axios.delete(`http://localhost:5000/todos/${[deletedId]}`).then((res) => {
       console.log(res.data);
     });
-    this.setState({ deletedId });
+    setDeletedId(deletedId);
   };
 
-  handleCheck = (e, todo) => {
-    const todos = [...this.state.todos];
-    const index = todos.indexOf(todo);
-    todos[index].checkStatus =
-      todos[index].checkStatus === false ? e.target.checked : false;
-    this.setState({ todos });
+  const handleCheck = (e, todo, ids) => {
+    ids.push(todo.todo_id);
+    setDeletedIds(ids);
   };
-  handleDeleteTodos = () => {
-    const deletedIds = [];
-    this.state.todos.forEach((t) => {
-      const id = t.todo_id;
 
-      if (t.checkStatus === true) {
-        deletedIds.push(id);
-        axios.delete(`http://localhost:5000/todos/${id}`).then((res) => {
-          console.log(res.data);
-        });
-      }
+  const handleDeleteTodos = (ids) => {
+    ids.forEach((id) => {
+      axios.delete(`http://localhost:5000/todos/${id}`).then((res) => {
+        console.log(res.data);
+      });
     });
-    this.setState({ deletedIds });
-
-    //const todos = this.state.todos.filter((t) => t.checkStatus === false);
-    //this.setState({ todos });
+    ids = [];
+    setDeletedIds(ids);
   };
 
-  render() {
-    return (
-      <div>
-        <NavBar />
-        <TodoForm
-          addTodo={this.handleAddTodo}
-          handleValue={this.handleChange}
-          newTodo={this.state.newTodo}
-        />
-        <Todos
-          todos={this.state.todos}
-          onDelete={this.handleDelete}
-          onCheck={this.handleCheck}
-          onDeleteTodos={this.handleDeleteTodos}
-        />
-      </div>
-    );
-  }
-}
+  return (
+    <div>
+      <NavBar />
+      <TodoForm
+        addTodo={handleAddTodo}
+        handleValue={handleChange}
+        newTodo={newTodo}
+      />
+      <Todos
+        todos={todos}
+        onDelete={handleDelete}
+        onCheck={handleCheck}
+        onDeleteTodos={handleDeleteTodos}
+        deletedIds={deletedIds}
+      />
+    </div>
+  );
+};
 
 export default App;
